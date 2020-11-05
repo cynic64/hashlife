@@ -21,42 +21,41 @@ class World
 public:
 	int width, height;
 
-	World(int width_, int height_);
+	World(int width, int height);
 	void print();
 	void randomize();
-	int count_neighbors(int x, int y);
+	void gen();
+	int countNeighbors(int x, int y);
 };
 
 int main()
 {
-	World world(8, 8);
+	World world(60, 61);
 
-	world.print();
-	std::cout << "Randomizing..." << std::endl;
 	world.randomize();
 	world.print();
+	std::cout << std::endl;
 
-	for (int y = 0; y < world.height; y++) {
-		for (int x = 0; x < world.width; x++) {
-			std::cout << world.count_neighbors(x, y) << " ";
-		}
+	for (int i = 0; i < 64; i++) {
+		world.gen();
+		world.print();
 		std::cout << std::endl;
 	}
 }
 
-World::World(int width_, int height_)
+World::World(int width, int height)
 {
-	width = width_;
-	height = height_;
+	this->width = width;
+	this->height = height;
 	
 	grid = std::vector<std::vector<bool>>
+		(height, std::vector<bool>(width, false));
+	next = std::vector<std::vector<bool>>
 		(height, std::vector<bool>(width, false));
 }
 
 void World::print()
 {
-	std::cout << "Width: " << width << std::endl;
-	
 	for (auto row : grid) {
 		for (auto cell : row) {
 			std::cout << (cell ? "# " : ". ");
@@ -75,7 +74,7 @@ void World::randomize()
 
 }
 
-int World::count_neighbors(int x, int y)
+int World::countNeighbors(int x, int y)
 {
 	int count = 0;
 	
@@ -87,4 +86,26 @@ int World::count_neighbors(int x, int y)
 	}
 
 	return count;
+}
+
+void World::gen()
+{
+	for (int y = 0; y < height; y++) {
+		for (int x = 0; x < width; x++) {
+			bool current = grid[y][x];
+			int count = countNeighbors(x, y);
+			
+			if (current) {
+				if (count == 2 || count == 3) next[y][x] = true;
+				else next[y][x] = false;
+			} else {
+				if (count == 3) next[y][x] = true;
+				else next[y][x] = false;
+			}
+		}
+	}
+
+	auto temp = next;
+	next = grid;
+	grid = temp;
 }
