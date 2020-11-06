@@ -38,29 +38,35 @@ public:
 	
 int main()
 {
-	// Create a 4x4 of level-0 nodes
+	// Level-0 nodes
 	Node a {true};
 	Node b {false};
-	Node c {true};
-	Node d {false};
 
-	Node q {a, b, c, d};
-	a.print();
+	// Level 1
+	Node a1 {a, a, a, a};
+	Node b1 {b, b, b, b};
+	Node c1 {a, b, a, b};
+	Node d1 {a, b, b, a};
 
-	/*
-	n.print();
+	// Level 2
+	Node a2 {a1, b1, c1, d1};
 
-	for (auto pos : n.positionsAlive()) {
-		std::cout << pos[0] << ", " << pos[1] << std::endl;
-	}
-	*/
+	a2.print();
 }
 
 void Node::print()
 {
-	assert(level == 0);
+	int size = 1 << level;
+	std::vector<std::vector<bool>> grid(
+		size, std::vector<bool>(size));
 
-	std::cout << (alive ? "# " : ". ") << std::endl;
+	for (auto pos : this->positionsAlive())
+		grid[pos[1]][pos[0]] = true;
+
+	for (auto row : grid) {
+		for (auto cell : row) std::cout << (cell ? "# " : ". ");
+		std::cout << std::endl;
+	}
 }
 
 std::vector<offset_t> Node::positionsAlive()
@@ -72,6 +78,19 @@ std::vector<offset_t> Node::positionsAlive()
 			return {};
 		}
 	} else {
-		assert(0);
+		int child_size = 1 << a->level;
+		
+		std::vector<offset_t> all_positions {};
+
+		for (auto pos: a->positionsAlive())
+			all_positions.push_back({pos[0], pos[1]});	
+		for (auto pos: b->positionsAlive())
+			all_positions.push_back({pos[0]+child_size, pos[1]});
+		for (auto pos: c->positionsAlive())
+			all_positions.push_back({pos[0], pos[1]+child_size});
+		for (auto pos: d->positionsAlive())
+			all_positions.push_back({pos[0]+child_size, pos[1]+child_size});
+	
+		return all_positions;
 	}
 }
