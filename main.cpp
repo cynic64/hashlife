@@ -14,6 +14,7 @@ public:
 	// Only used for level-0 nodes
 	bool alive;
 
+	// Constructors
 	Node(bool alive) : level(0),
 			    a(NULL), b(NULL), c(NULL), d(NULL),
 			    alive(alive) {}
@@ -29,12 +30,17 @@ public:
 	}
 	
 	void print();
-	/*
-	 * Returns a vector of offsets of alive cells within the node. (0, 0)
-	 * represents the top corner, (2**k-1, 2**k-1) the bottom-right.
-	 */
+	
+	// Returns a vector of offsets of alive cells within the node. (0, 0)
+	// represents the top corner, (2**k-1, 2**k-1) the bottom-right.
 	std::vector<offset_t> positionsAlive();
+
+	// Calculates the successor and stores it in result
+	Node successor();
 };
+
+bool nextState(Node& self,
+	       Node& a, Node& b, Node& c, Node& d, Node& e, Node& f, Node& g, Node& h);
 	
 int main()
 {
@@ -42,16 +48,16 @@ int main()
 	Node a {true};
 	Node b {false};
 
-	// Level 1
-	Node a1 {a, a, a, a};
+	// Level-1
+	Node a1 {b, b, b, a};
 	Node b1 {b, b, b, b};
-	Node c1 {a, b, a, b};
-	Node d1 {a, b, b, a};
+	Node c1 {b, a, b, a};
+	Node d1 {b, b, b, b};
 
-	// Level 2
-	Node a2 {a1, b1, c1, d1};
-
-	a2.print();
+	Node q {a1, b1, c1, d1};
+	q.print();
+	Node s = q.successor();
+	s.print();
 }
 
 void Node::print()
@@ -93,4 +99,29 @@ std::vector<offset_t> Node::positionsAlive()
 	
 		return all_positions;
 	}
+}
+
+Node Node::successor()
+{
+	assert(level == 2);
+
+	Node next_a {nextState(*a->d,
+			       *a->a, *a->b, *b->a, *b->c, *d->a, *c->b, *c->a, *a->c)};
+	Node next_b {nextState(*b->c,
+			       *a->b, *b->a, *b->b, *b->d, *d->b, *d->a, *c->b, *a->d)};
+	Node next_c {nextState(*c->b,
+			       *a->c, *a->d, *b->c, *d->a, *d->c, *c->d, *c->c, *c->a)};
+	Node next_d {nextState(*d->a,
+			       *a->d, *b->c, *b->d, *d->b, *d->d, *d->c, *c->d, *c->b)};
+
+	return Node {next_a, next_b, next_c, next_d};
+}
+
+bool nextState(Node& self,
+	       Node& a, Node& b, Node& c, Node& d, Node& e, Node& f, Node& g, Node& h)
+{
+	assert(self.level == a.level == b.level == c.level == d.level == e.level == f.level == g.level == h.level == 0);
+	int count = a.alive+b.alive+c.alive+d.alive+e.alive+f.alive+g.alive+h.alive;
+	if (count == 3 || self.alive && count == 2) return true;
+	else return false;
 }
