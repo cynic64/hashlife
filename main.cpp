@@ -35,7 +35,7 @@ public:
 	// represents the top corner, (2**k-1, 2**k-1) the bottom-right.
 	std::vector<offset_t> positionsAlive();
 
-	// Calculates the successor and stores it in result
+	// Calculates the successor and returns it
 	Node successor();
 };
 
@@ -105,16 +105,16 @@ Node Node::successor()
 {
 	assert(level == 2);
 
-	Node next_a {nextState(*a->d,
-			       *a->a, *a->b, *b->a, *b->c, *d->a, *c->b, *c->a, *a->c)};
-	Node next_b {nextState(*b->c,
-			       *a->b, *b->a, *b->b, *b->d, *d->b, *d->a, *c->b, *a->d)};
-	Node next_c {nextState(*c->b,
-			       *a->c, *a->d, *b->c, *d->a, *d->c, *c->d, *c->c, *c->a)};
-	Node next_d {nextState(*d->a,
-			       *a->d, *b->c, *b->d, *d->b, *d->d, *d->c, *c->d, *c->b)};
+	Node *next_a = new Node {nextState(*a->d,
+					   *a->a, *a->b, *b->a, *b->c, *d->a, *c->b, *c->a, *a->c)};
+	Node *next_b = new Node {nextState(*b->c,
+					   *a->b, *b->a, *b->b, *b->d, *d->b, *d->a, *c->b, *a->d)};
+	Node *next_c = new Node {nextState(*c->b,
+					   *a->c, *a->d, *b->c, *d->a, *d->c, *c->d, *c->c, *c->a)};
+	Node *next_d = new Node {nextState(*d->a,
+					   *a->d, *b->c, *b->d, *d->b, *d->d, *d->c, *c->d, *c->b)};
 
-	return Node {next_a, next_b, next_c, next_d};
+	return Node {*next_a, *next_b, *next_c, *next_d};
 }
 
 bool nextState(Node& self,
