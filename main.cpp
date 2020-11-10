@@ -115,6 +115,8 @@ Node* Cache::create(int level, Node* a, Node* b, Node* c, Node* d, bool alive)
 			  << desc
 			  << ": Cached"
 			  << std::endl;
+		cache[desc]->print();
+		std::cout << std::endl;
 		return cache[desc];
 	}
 
@@ -138,6 +140,91 @@ Node* Cache::create(int level, Node* a, Node* b, Node* c, Node* d, bool alive)
 		n->c = c;
 		n->d = d;
 	};
+
+	n->print();
+	std::cout << std::endl;
+
+	// Special case: level 2 (4x4)
+	if (level == 2) {
+		Node* alive = create(0, NULL, NULL, NULL, NULL, true);
+		Node* dead = create(0, NULL, NULL, NULL, NULL, false);
+
+		auto ns = [&](Node* s, Node* a, Node* b, Node* c, Node* d,
+			      Node* e, Node* f, Node* g, Node* h)
+			{
+				int n = a->alive
+					+b->alive
+					+c->alive
+					+d->alive
+					+e->alive
+					+f->alive
+					+g->alive
+					+h->alive;
+				return (n == 3 || s->alive && n == 2) ?
+					alive : dead;
+			};
+		n->result = create(1,
+				   ns(n->a->d, n->a->a, n->a->b, n->b->a, n->b->c,
+				      n->d->a, n->c->b, n->c->a, n->a->c),
+				   ns(n->b->c, n->a->b, n->b->a, n->b->b, n->b->d,
+				      n->d->b, n->d->a, n->c->b, n->a->d),
+				   ns(n->c->b, n->a->c, n->a->d, n->b->c, n->d->a,
+				      n->d->c, n->c->d, n->c->c, n->c->a),
+				   ns(n->d->a, n->a->d, n->b->c, n->b->d, n->d->b,
+				      n->d->d, n->d->c, n->c->d, n->c->b),
+				   false);
+		std::cout << "Result of " << desc << ":" << std::endl;
+		n->result->print();
+		std::cout << std::endl;
+	}
+
+	// All higher level results are calculated the same way
+	if (level >= 3) {
+		// Capital letters represent 6x6 grid, 2**(l-3) generations into
+		// the future
+		Node* A = n->a->result;
+		Node* B = create(n->level - 1,
+				 n->a->b, n->b->a, n->a->d, n->b->c,
+				 false)->result;
+		Node* C = n->b->result;
+		Node* D = create(n->level - 1,
+				 n->a->c, n->a->d, n->c->a, n->c->b,
+				 false)->result;
+		Node* E = create(n->level - 1,
+				 n->a->d, n->b->c, n->c->b, n->d->a,
+				 false)->result;
+		Node* F = create(n->level - 1,
+				 n->b->c, n->b->d, n->d->a, n->d->b,
+				 false)->result;
+		Node* G = n->c->result;
+		Node* H = create(n->level - 1,
+				 n->c->b, n->d->a, n->c->d, n->d->c,
+				 false)->result;
+		Node* I = n->d->result;
+
+		std::cout << "Pre-B:" << std::endl;
+		create(n->level-1, n->a->b, n->b->a, n->a->c, n->b->c, false)->print();
+		std::cout << "B:" << std::endl;
+		B->print();
+		std::cout << std::endl;
+
+		// 2**(l-2) generations into the future
+		Node* x = create(n->level - 1,
+				 A, B, D, E, false)->result;
+		Node* y = create(n->level - 1,
+				 B, C, E, F, false)->result;
+		Node* z = create(n->level - 1,
+				 D, E, G, H, false)->result;
+		Node* w = create(n->level - 1,
+				 E, F, H, I, false)->result;
+
+		// Combined result, 2**(l-2) generations into the future
+		n->result = create(n->level - 1, x, y, z, w, false);
+
+		std::cout << "Result of " << desc << ":" << std::endl;
+		n->result->print();
+		std::cout << std::endl;
+	}
 
 	cache[desc] = n;
 
