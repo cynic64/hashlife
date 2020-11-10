@@ -45,24 +45,32 @@ int main()
 	std::vector<Node*> level_0;
 	std::vector<Node*> level_1;
 	std::vector<Node*> level_2;
+	std::vector<Node*> level_3;
 
-	for (int i = 0; i < 64; i++)
+	for (int i = 0; i < 256; i++)
 		level_0.push_back(cache.create(0,
 					       NULL, NULL, NULL, NULL,
 					       rand() % 2));
 
-	for (int i = 0; i < 16; i++)
+	for (int i = 0; i < 64; i++)
 		level_1.push_back(cache.create(1,
 					       level_0[4*i], level_0[4*i+1], level_0[4*i+2], level_0[4*i+3],
 					       false));
 
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < 16; i++)
 		level_2.push_back(cache.create(2,
 					       level_1[4*i], level_1[4*i+1], level_1[4*i+2], level_1[4*i+3],
 					       false));
 
-	Node* level_3 = cache.create(3, level_2[0], level_2[1], level_2[2], level_2[3], false);
-	level_3->print();
+	for (int i = 0; i < 4; i++)
+		level_3.push_back(cache.create(3,
+					       level_2[4*i], level_2[4*i+1], level_2[4*i+2], level_2[4*i+3],
+					       false));
+
+	Node* level_4 = cache.create(4, level_3[0], level_3[1], level_3[2], level_3[3], false);
+	level_4->print();
+	std::cout << std::endl;
+	level_4->result->print();
 }
 
 void Node::print()
@@ -110,21 +118,9 @@ Node* Cache::create(int level, Node* a, Node* b, Node* c, Node* d, bool alive)
 {
 	std::string desc = getKey(level, a, b, c, d, alive);
 
-	if (cache.find(desc) != cache.end()) {
-		std::cout << "[Create] "
-			  << desc
-			  << ": Cached"
-			  << std::endl;
-		cache[desc]->print();
-		std::cout << std::endl;
+	if (cache.find(desc) != cache.end())
 		return cache[desc];
-	}
 
-	std::cout << "[Create] "
-		  << desc
-		  << ": Not cached"
-		  << std::endl;
-	
 	Node* n = new Node;
 	n->level = level;
 	n->alive = alive;
@@ -141,8 +137,6 @@ Node* Cache::create(int level, Node* a, Node* b, Node* c, Node* d, bool alive)
 		n->d = d;
 	};
 
-	n->print();
-	std::cout << std::endl;
 
 	// Special case: level 2 (4x4)
 	if (level == 2) {
@@ -173,9 +167,6 @@ Node* Cache::create(int level, Node* a, Node* b, Node* c, Node* d, bool alive)
 				   ns(n->d->a, n->a->d, n->b->c, n->b->d, n->d->b,
 				      n->d->d, n->d->c, n->c->d, n->c->b),
 				   false);
-		std::cout << "Result of " << desc << ":" << std::endl;
-		n->result->print();
-		std::cout << std::endl;
 	}
 
 	// All higher level results are calculated the same way
@@ -202,12 +193,6 @@ Node* Cache::create(int level, Node* a, Node* b, Node* c, Node* d, bool alive)
 				 false)->result;
 		Node* I = n->d->result;
 
-		std::cout << "Pre-B:" << std::endl;
-		create(n->level-1, n->a->b, n->b->a, n->a->c, n->b->c, false)->print();
-		std::cout << "B:" << std::endl;
-		B->print();
-		std::cout << std::endl;
-
 		// 2**(l-2) generations into the future
 		Node* x = create(n->level - 1,
 				 A, B, D, E, false)->result;
@@ -220,10 +205,6 @@ Node* Cache::create(int level, Node* a, Node* b, Node* c, Node* d, bool alive)
 
 		// Combined result, 2**(l-2) generations into the future
 		n->result = create(n->level - 1, x, y, z, w, false);
-
-		std::cout << "Result of " << desc << ":" << std::endl;
-		n->result->print();
-		std::cout << std::endl;
 	}
 
 	cache[desc] = n;
