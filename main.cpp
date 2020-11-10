@@ -2,6 +2,8 @@
 #include<cassert>
 #include<vector>
 #include<array>
+#include<string>
+#include<unordered_map>
 
 typedef std::array<int,2> offset_t;
 
@@ -11,24 +13,10 @@ public:
 	int level;
 	// Children in reading order
 	Node *a, *b, *c, *d;
+	Node *result;
 	// Only used for level-0 nodes
 	bool alive;
 
-	// Constructors
-	Node(bool alive) : level(0),
-			    a(NULL), b(NULL), c(NULL), d(NULL),
-			    alive(alive) {}
-
-	Node(Node& a, Node& b, Node& c, Node& d) {
-		assert(a.level == b.level == c.level == d.level);
-		level = a.level + 1;
-
-		this->a = &a;
-		this->b = &b;
-		this->c = &c;
-		this->d = &d;
-	}
-	
 	void print();
 	
 	// Returns a vector of offsets of alive cells within the node. (0, 0)
@@ -39,25 +27,42 @@ public:
 	Node successor();
 };
 
-bool nextState(Node& self,
-	       Node& a, Node& b, Node& c, Node& d, Node& e, Node& f, Node& g, Node& h);
+class Cache
+{
+	// Given a description of a Node, gives a cache key
+	std::string getKey(int level, Node* a, Node* b, Node* c, Node* d, bool alive);
+
+	std::unordered_map<std::string, Node*> cache;
+public:
+	Node* create(int level, Node* a, Node* b, Node* c, Node* d, bool alive);
+};
+
 	
 int main()
 {
-	// Level-0 nodes
-	Node a {true};
-	Node b {false};
+	Cache cache;
 
-	// Level-1
-	Node a1 {b, b, b, a};
-	Node b1 {b, b, b, b};
-	Node c1 {b, a, b, a};
-	Node d1 {b, b, b, b};
+	std::vector<Node*> level_0;
+	std::vector<Node*> level_1;
+	std::vector<Node*> level_2;
 
-	Node q {a1, b1, c1, d1};
-	q.print();
-	Node s = q.successor();
-	s.print();
+	for (int i = 0; i < 64; i++)
+		level_0.push_back(cache.create(0,
+					       NULL, NULL, NULL, NULL,
+					       rand() % 2));
+
+	for (int i = 0; i < 16; i++)
+		level_1.push_back(cache.create(1,
+					       level_0[4*i], level_0[4*i+1], level_0[4*i+2], level_0[4*i+3],
+					       false));
+
+	for (int i = 0; i < 4; i++)
+		level_2.push_back(cache.create(2,
+					       level_1[4*i], level_1[4*i+1], level_1[4*i+2], level_1[4*i+3],
+					       false));
+
+	Node* level_3 = cache.create(3, level_2[0], level_2[1], level_2[2], level_2[3], false);
+	level_3->print();
 }
 
 void Node::print()
@@ -101,27 +106,52 @@ std::vector<offset_t> Node::positionsAlive()
 	}
 }
 
-Node Node::successor()
+Node* Cache::create(int level, Node* a, Node* b, Node* c, Node* d, bool alive)
 {
-	assert(level == 2);
+	std::string desc = getKey(level, a, b, c, d, alive);
 
-	Node *next_a = new Node {nextState(*a->d,
-					   *a->a, *a->b, *b->a, *b->c, *d->a, *c->b, *c->a, *a->c)};
-	Node *next_b = new Node {nextState(*b->c,
-					   *a->b, *b->a, *b->b, *b->d, *d->b, *d->a, *c->b, *a->d)};
-	Node *next_c = new Node {nextState(*c->b,
-					   *a->c, *a->d, *b->c, *d->a, *d->c, *c->d, *c->c, *c->a)};
-	Node *next_d = new Node {nextState(*d->a,
-					   *a->d, *b->c, *b->d, *d->b, *d->d, *d->c, *c->d, *c->b)};
+	if (cache.find(desc) != cache.end()) {
+		std::cout << "[Create] "
+			  << desc
+			  << ": Cached"
+			  << std::endl;
+		return cache[desc];
+	}
 
-	return Node {*next_a, *next_b, *next_c, *next_d};
+	std::cout << "[Create] "
+		  << desc
+		  << ": Not cached"
+		  << std::endl;
+	
+	Node* n = new Node;
+	n->level = level;
+	n->alive = alive;
+
+	if (level != 0) {
+		assert(level == a->level + 1);
+		assert(level == b->level + 1);
+		assert(level == c->level + 1);
+		assert(level == d->level + 1);
+		
+		n->a = a;
+		n->b = b;
+		n->c = c;
+		n->d = d;
+	};
+
+	cache[desc] = n;
+
+	return n;
 }
 
-bool nextState(Node& self,
-	       Node& a, Node& b, Node& c, Node& d, Node& e, Node& f, Node& g, Node& h)
+std::string Cache::getKey(int level, Node* a, Node* b, Node* c, Node* d, bool alive)
 {
-	assert(self.level == a.level == b.level == c.level == d.level == e.level == f.level == g.level == h.level == 0);
-	int count = a.alive+b.alive+c.alive+d.alive+e.alive+f.alive+g.alive+h.alive;
-	if (count == 3 || self.alive && count == 2) return true;
-	else return false;
+	char buf[128];
+	if (level == 0)
+		sprintf(buf, "%s", alive ? "alive" : "dead");
+	else
+		sprintf(buf, "L: %d, %p|%p|%p|%p",
+			level, (void*)a, (void*)b, (void*)c, (void*)d);
+
+	return std::string {buf};
 }
