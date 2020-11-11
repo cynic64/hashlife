@@ -59,92 +59,111 @@ Node* Cache::create(int level, Node* a, Node* b, Node* c, Node* d, bool alive)
 	n->level = level;
 	n->alive = alive;
 
-	if (level != 0) {
-		assert(level == a->level + 1);
-		assert(level == b->level + 1);
-		assert(level == c->level + 1);
-		assert(level == d->level + 1);
+	if (level == 0) return n;
+
+	assert(level == a->level + 1);
+	assert(level == b->level + 1);
+	assert(level == c->level + 1);
+	assert(level == d->level + 1);
 		
-		n->a = a;
-		n->b = b;
-		n->c = c;
-		n->d = d;
-	};
+	n->a = a;
+	n->b = b;
+	n->c = c;
+	n->d = d;
 
+	// No need to calculate result when l = 1
+	if (level == 1) return n;
 
-	// Special case: level 2 (4x4)
-	if (level == 2) {
-		Node* alive = create(0, NULL, NULL, NULL, NULL, true);
-		Node* dead = create(0, NULL, NULL, NULL, NULL, false);
-
-		auto ns = [&](Node* s, Node* a, Node* b, Node* c, Node* d,
-			      Node* e, Node* f, Node* g, Node* h)
-			{
-				int n = a->alive
-					+b->alive
-					+c->alive
-					+d->alive
-					+e->alive
-					+f->alive
-					+g->alive
-					+h->alive;
-				return (n == 3 || s->alive && n == 2) ?
-					alive : dead;
-			};
-		n->result = create(1,
-				   ns(n->a->d, n->a->a, n->a->b, n->b->a, n->b->c,
-				      n->d->a, n->c->b, n->c->a, n->a->c),
-				   ns(n->b->c, n->a->b, n->b->a, n->b->b, n->b->d,
-				      n->d->b, n->d->a, n->c->b, n->a->d),
-				   ns(n->c->b, n->a->c, n->a->d, n->b->c, n->d->a,
-				      n->d->c, n->c->d, n->c->c, n->c->a),
-				   ns(n->d->a, n->a->d, n->b->c, n->b->d, n->d->b,
-				      n->d->d, n->d->c, n->c->d, n->c->b),
-				   false);
-	}
-
-	// All higher level results are calculated the same way
-	if (level >= 3) {
-		// Capital letters represent 6x6 grid, 2**(l-3) generations into
-		// the future
-		Node* A = n->a->result;
-		Node* B = create(n->level - 1,
-				 n->a->b, n->b->a, n->a->d, n->b->c,
-				 false)->result;
-		Node* C = n->b->result;
-		Node* D = create(n->level - 1,
-				 n->a->c, n->a->d, n->c->a, n->c->b,
-				 false)->result;
-		Node* E = create(n->level - 1,
-				 n->a->d, n->b->c, n->c->b, n->d->a,
-				 false)->result;
-		Node* F = create(n->level - 1,
-				 n->b->c, n->b->d, n->d->a, n->d->b,
-				 false)->result;
-		Node* G = n->c->result;
-		Node* H = create(n->level - 1,
-				 n->c->b, n->d->a, n->c->d, n->d->c,
-				 false)->result;
-		Node* I = n->d->result;
-
-		// 2**(l-2) generations into the future
-		Node* x = create(n->level - 1,
-				 A, B, D, E, false)->result;
-		Node* y = create(n->level - 1,
-				 B, C, E, F, false)->result;
-		Node* z = create(n->level - 1,
-				 D, E, G, H, false)->result;
-		Node* w = create(n->level - 1,
-				 E, F, H, I, false)->result;
-
-		// Combined result, 2**(l-2) generations into the future
-		n->result = create(n->level - 1, x, y, z, w, false);
-	}
-
+	n->result = result(a, b, c, d);
 	cache[desc] = n;
 
 	return n;
 }
+
+Node* Cache::result(Node* a, Node* b, Node* c, Node* d)
+{
+	assert(a->level == b->level
+	       && b->level == c->level
+	       && c->level == d->level);
+	assert(a->level >= 1);
+
+	if (a->level == 1) {
+		return result4x4(a, b, c, d);
+	}
+	
+	// Capital letters represent 6x6 grid, 2**(l-3) generations into
+	// the future
+	Node* A = a->result;
+	Node* B = create(a->level,
+			 a->b, b->a, a->d, b->c,
+			 false)->result;
+	Node* C = b->result;
+	Node* D = create(a->level,
+			 a->c, a->d, c->a, c->b,
+			 false)->result;
+	Node* E = create(a->level,
+			 a->d, b->c, c->b, d->a,
+			 false)->result;
+	Node* F = create(a->level,
+			 b->c, b->d, d->a, d->b,
+			 false)->result;
+	Node* G = c->result;
+	Node* H = create(a->level,
+			 c->b, d->a, c->d, d->c,
+			 false)->result;
+	Node* I = d->result;
+
+	// 2**(l-2) generations into the future
+	Node* x = create(a->level,
+			 A, B, D, E, false)->result;
+	Node* y = create(a->level,
+			 B, C, E, F, false)->result;
+	Node* z = create(a->level,
+			 D, E, G, H, false)->result;
+	Node* w = create(a->level,
+			 E, F, H, I, false)->result;
+
+	// Combined result, 2**(l-2) generations into the future
+	return create(a->level, x, y, z, w, false);
+}
+
+Node* Cache::result4x4(Node* a, Node* b, Node* c, Node* d)
+{
+	assert(a->level == 1);
+	assert(b->level == 1);
+	assert(c->level == 1);
+	assert(d->level == 1);
+
+	Node* alive = create(0, NULL, NULL, NULL, NULL, true);
+	Node* dead = create(0, NULL, NULL, NULL, NULL, false);
+
+	auto ns = [&](Node* s, Node* a, Node* b, Node* c, Node* d,
+		      Node* e, Node* f, Node* g, Node* h)
+		{
+			int count = a->alive
+				+b->alive
+				+c->alive
+				+d->alive
+				+e->alive
+				+f->alive
+				+g->alive
+				+h->alive;
+			return (count == 3 || s->alive && count == 2) ?
+				alive : dead;
+		};
+
+	return create(1,
+		      ns(a->d, a->a, a->b, b->a, b->c,
+			 d->a, c->b, c->a, a->c),
+		      ns(b->c, a->b, b->a, b->b, b->d,
+			 d->b, d->a, c->b, a->d),
+		      ns(c->b, a->c, a->d, b->c, d->a,
+			 d->c, c->d, c->c, c->a),
+		      ns(d->a, a->d, b->c, b->d, d->b,
+			 d->d, d->c, c->d, c->b),
+		      false);
+}
+
 
 std::string Cache::getKey(int level, Node* a, Node* b, Node* c, Node* d, bool alive)
 {
