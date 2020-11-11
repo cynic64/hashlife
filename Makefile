@@ -1,2 +1,2 @@
-main: main.cpp
-	g++ -g main.cpp -o main
+main: main.cpp hashlife.cpp
+	g++ -g hashlife.cpp main.cpp -o main
