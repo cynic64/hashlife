@@ -40,7 +40,9 @@ namespace hashlife {
 		std::unordered_map<std::string, Node*> cache;
 	public:
 		Node* create(int level, Node* a, Node* b, Node* c, Node* d, bool alive);
+
+		Node* loadFromFile(std::string path);
 	};
 }
 
-#endif // HASHLIFIE_H
+#endif // HASHLIFE_H

@@ -36,4 +36,7 @@ int main()
 	level_4->print();
 	std::cout << std::endl;
 	level_4->result->print();
+
+	hashlife::Node* loaded = cache.loadFromFile("pattern.cells");
+	loaded->print();
 }
