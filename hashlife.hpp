@@ -3,6 +3,7 @@
 
 #include <array>
 #include <unordered_map>
+#include <vector>
 
 namespace hashlife {
 	typedef std::array<int,2> offset_t;
