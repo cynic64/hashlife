@@ -13,7 +13,7 @@ void Node::print()
 	std::vector<std::vector<bool>> grid(
 		size, std::vector<bool>(size));
 
-	for (auto pos : this->positionsAlive())
+	for (auto pos : this->positions_alive())
 		grid[pos[1]][pos[0]] = true;
 
 	for (auto row : grid) {
@@ -22,7 +22,7 @@ void Node::print()
 	}
 }
 
-std::vector<offset_t> Node::positionsAlive()
+std::vector<offset_t> Node::positions_alive()
 {
 	if (level == 0) {
 		if (alive) {
@@ -35,13 +35,13 @@ std::vector<offset_t> Node::positionsAlive()
 		
 		std::vector<offset_t> all_positions {};
 
-		for (auto pos: a->positionsAlive())
+		for (auto pos: a->positions_alive())
 			all_positions.push_back({pos[0], pos[1]});	
-		for (auto pos: b->positionsAlive())
+		for (auto pos: b->positions_alive())
 			all_positions.push_back({pos[0]+child_size, pos[1]});
-		for (auto pos: c->positionsAlive())
+		for (auto pos: c->positions_alive())
 			all_positions.push_back({pos[0], pos[1]+child_size});
-		for (auto pos: d->positionsAlive())
+		for (auto pos: d->positions_alive())
 			all_positions.push_back({pos[0]+child_size, pos[1]+child_size});
 	
 		return all_positions;
@@ -50,7 +50,7 @@ std::vector<offset_t> Node::positionsAlive()
 
 Node* Cache::create(int level, Node* a, Node* b, Node* c, Node* d, bool alive)
 {
-	std::string desc = getKey(level, a, b, c, d, alive);
+	std::string desc = get_key(level, a, b, c, d, alive);
 
 	if (cache.find(desc) != cache.end())
 		return cache[desc];
@@ -88,7 +88,7 @@ Node* Cache::result(Node* a, Node* b, Node* c, Node* d)
 	assert(a->level >= 1);
 
 	if (a->level == 1) {
-		return result4x4(a, b, c, d);
+		return result_4x4(a, b, c, d);
 	}
 	
 	// Capital letters represent 6x6 grid, 2**(l-3) generations into
@@ -127,7 +127,7 @@ Node* Cache::result(Node* a, Node* b, Node* c, Node* d)
 	return create(a->level, x, y, z, w, false);
 }
 
-Node* Cache::result4x4(Node* a, Node* b, Node* c, Node* d)
+Node* Cache::result_4x4(Node* a, Node* b, Node* c, Node* d)
 {
 	assert(a->level == 1);
 	assert(b->level == 1);
@@ -165,7 +165,7 @@ Node* Cache::result4x4(Node* a, Node* b, Node* c, Node* d)
 }
 
 
-std::string Cache::getKey(int level, Node* a, Node* b, Node* c, Node* d, bool alive)
+std::string Cache::get_key(int level, Node* a, Node* b, Node* c, Node* d, bool alive)
 {
 	char buf[128];
 	if (level == 0)

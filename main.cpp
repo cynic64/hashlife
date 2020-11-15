@@ -24,7 +24,7 @@
  * (a, b, c, d)->result ==> new n
  * 
  * a, b, c, d are all the same
-*/
+ */
 
 int main(int argc, char* argv[])
 {
@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
 	
 	hashlife::Cache cache;
 
-	hashlife::Node* n = cache.loadFromFile(path);
+	hashlife::Node* n = cache.load_from_file(path);
 	n->print();
 	std::cout << std::endl << std::endl;
 

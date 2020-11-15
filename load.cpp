@@ -52,7 +52,7 @@ Node* nodify(Cache cache, std::vector<std::vector<bool>> grid)
 	return cache.create(n_a->level+1, n_a, n_b, n_c, n_d, false);
 }
 
-Node* Cache::loadFromFile(std::string path)
+Node* Cache::load_from_file(std::string path)
 {
 	// Load file into 2D bool array
 	std::vector<std::vector<bool>> grid;
