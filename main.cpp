@@ -1,5 +1,6 @@
 #include <vector>
 #include <iostream>
+#include <cassert>
 
 #include "hashlife.hpp"
 
@@ -25,11 +26,14 @@
  * a, b, c, d are all the same
 */
 
-int main()
+int main(int argc, char* argv[])
 {
+	assert(argc == 2);
+	std::string path { argv[1] };
+	
 	hashlife::Cache cache;
 
-	hashlife::Node* n = cache.loadFromFile("pattern.cells");
+	hashlife::Node* n = cache.loadFromFile(path);
 	n->print();
 	std::cout << std::endl << std::endl;
 
