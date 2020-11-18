@@ -84,6 +84,52 @@ Node* Cache::create(int level, Node* a, Node* b, Node* c, Node* d, bool alive)
 	return n;
 }
 
+Node* Cache::successor(Node* n, int t)
+{
+	// To go 2**t generations into the future, we only need to take the
+	// results of all nodes of level 2**(t+2)
+
+	assert(t >= 0);
+	assert(n->level >= t + 2);
+
+	// Found the right level: take the result
+	if (n->level <= t + 2) return n->result;
+	
+	// Othersise, level of given node is too high, so don't do any work:
+	// just merge
+	Node* A = successor(n->a, t);
+	Node* B = successor(create(n->level-1,
+				   n->a->b, n->b->a, n->a->d, n->b->c,
+				   false), t);
+	Node* C = successor(n->b, t);
+	Node* D = successor(create(n->level-1,
+				   n->a->c, n->a->d, n->c->a, n->c->b,
+				   false), t);
+	Node* E = successor(create(n->level-1,
+				   n->a->d, n->b->c, n->c->b, n->d->a,
+				   false), t);
+	Node* F = successor(create(n->level-1,
+				   n->b->c, n->b->d, n->d->a, n->d->b,
+				   false), t);
+	Node* G = successor(n->c, t);
+	Node* H = successor(create(n->level-1,
+				   n->c->b, n->d->a, n->c->d, n->d->c,
+				   false), t);
+	Node* I = successor(n->d, t);
+
+	return create(n->level - 1,
+		      create(n->level - 2,
+			     A->d, B->c, D->b, E->a, false),
+		      create(n->level - 2,
+			     B->d, C->c, E->b, F->a, false),
+		      create(n->level - 2,
+			     D->d, E->c, G->b, H->a, false),
+		      create(n->level - 2,
+			     E->d, F->c, H->b, I->a, false),
+		      false);
+}
+
+
 Node* Cache::result(Node* a, Node* b, Node* c, Node* d)
 {
 	assert(a->level == b->level

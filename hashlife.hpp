@@ -45,6 +45,9 @@ namespace hashlife {
 	public:
 		Node* create(int level, Node* a, Node* b, Node* c, Node* d, bool alive);
 
+		// Returns center square, 2**t generations into the future
+		Node* successor(Node* n, int t);
+
 		Node* load_from_file(std::string path);
 
 		void print_stats();
