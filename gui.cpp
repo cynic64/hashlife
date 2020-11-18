@@ -35,8 +35,8 @@ int main(int argc, char* argv[])
 	int counter = 0;
 	while (!(event.type == SDL_QUIT)) {
 		// Next generation
-		auto a = cache.successor(cache.create(n->level + 1, n, n, n, n, false), 0);
-		n = cache.successor(cache.create(a->level + 1, a, a, a, a, false), 0);
+		auto a = cache.create(n->level + 1, n, n, n, n, false)->result(&cache);
+		n = cache.create(a->level + 1, a, a, a, a, false)->result(&cache);
 
 		// Clear
 		SDL_SetRenderDrawColor(renderer, 80, 80, 80, 80);

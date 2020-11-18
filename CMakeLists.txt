@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 # Optimized, but with debug symbols (turns assertions off!)
-# set(CMAKE_BUILD_TYPE RelWithDebInfo)
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE RelWithDebInfo)
 
 # Set the project name
 project(Hashlife)
@@ -16,7 +15,7 @@ add_library(Internals hashlife.cpp)
 add_library(Loading load.cpp)
 
 # Add the executable
-add_executable(CLI main.cpp)
+add_executable(CLI cli.cpp)
 add_executable(GUI gui.cpp)
 
 # Link
