@@ -32,16 +32,21 @@ int main(int argc, char* argv[])
 	std::string path { argv[1] };
 	
 	hashlife::Cache cache;
+	cache.print_stats();
+	std::cout << std::endl;
 
 	hashlife::Node* n = cache.load_from_file(path);
-	n->print();
-	std::cout << std::endl << std::endl;
+	// n->print();
+	// std::cout << std::endl << std::endl;
 
         for (int i = 0; i < 64; i++) {
 		hashlife::Node* a =
 			cache.create(n->level + 1, n, n, n, n, false)->result;
 		n = cache.create(a->level + 1, a, a, a, a, false)->result;
-		n->print();
-		std::cout << std::endl << std::endl;
+		// n->print();
+		// std::cout << std::endl << std::endl;
+		std::cout << i << std::endl;
+		cache.print_stats();
+		std::cout << std::endl;
 	}
 }

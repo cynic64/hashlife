@@ -59,9 +59,11 @@ int main(int argc, char* argv[])
 		counter++;
 	}
 
-	std::cout << counter << std::endl;
+	std::cout << counter << std::endl << std::endl;
 
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
+
+	cache.print_stats();
 }

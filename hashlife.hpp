@@ -39,10 +39,15 @@ namespace hashlife {
 		Node* result_4x4(Node* a, Node* b, Node* c, Node* d);
 
 		std::unordered_map<std::string, Node*> cache;
+
+		int hits = 0;
+		int misses = 0;
 	public:
 		Node* create(int level, Node* a, Node* b, Node* c, Node* d, bool alive);
 
 		Node* load_from_file(std::string path);
+
+		void print_stats();
 	};
 }
 

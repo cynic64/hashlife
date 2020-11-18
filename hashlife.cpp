@@ -52,12 +52,17 @@ Node* Cache::create(int level, Node* a, Node* b, Node* c, Node* d, bool alive)
 {
 	std::string desc = get_key(level, a, b, c, d, alive);
 
-	if (cache.find(desc) != cache.end())
+	if (cache.find(desc) != cache.end()) {
+		hits++;
 		return cache[desc];
+	}
+
+	misses++;
 
 	Node* n = new Node;
 	n->level = level;
 	n->alive = alive;
+	cache[desc] = n;
 
 	if (level == 0) return n;
 
@@ -75,7 +80,6 @@ Node* Cache::create(int level, Node* a, Node* b, Node* c, Node* d, bool alive)
 	if (level == 1) return n;
 
 	n->result = result(a, b, c, d);
-	cache[desc] = n;
 
 	return n;
 }
@@ -175,4 +179,14 @@ std::string Cache::get_key(int level, Node* a, Node* b, Node* c, Node* d, bool a
 			level, (void*)a, (void*)b, (void*)c, (void*)d);
 
 	return std::string {buf};
+}
+
+void Cache::print_stats()
+{
+	std::cout << "size: " << cache.size() << std::endl;
+	std::cout << "bucket_count: " << cache.bucket_count() << std::endl;
+	std::cout << "load_factor: " << cache.load_factor() << std::endl;
+	std::cout << "max_load_factor: " << cache.max_load_factor() << std::endl;
+	std::cout << "hits: " << hits << std::endl;
+	std::cout << "misses: " << misses << std::endl;
 }

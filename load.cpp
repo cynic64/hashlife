@@ -14,8 +14,9 @@ Node* nodify(Cache cache, std::vector<std::vector<bool>> grid)
 	assert(grid.size() == grid[0].size());
 
 	// Edge case: level 0
-	if (grid.size() == 1)
+	if (grid.size() == 1) {
 		return cache.create(0, NULL, NULL, NULL, NULL, grid[0][0]);
+	}
 
 	// Split into 4 quadrants and recursively nodify
 	size_t half = grid.size() / 2;
