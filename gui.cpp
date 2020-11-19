@@ -17,6 +17,7 @@ int main(int argc, char* argv[])
 	hashlife::Cache cache;
 
 	hashlife::Node* n = cache.load_from_file(path);
+	std::cout << "Level: " << n->level << std::endl;
 
 	// Set up SDL
 	SDL_Renderer* renderer;
@@ -33,10 +34,34 @@ int main(int argc, char* argv[])
 	// Loop
 	SDL_Event event;
 	int counter = 0;
+	int steps = 0;
 	while (!(event.type == SDL_QUIT)) {
-		// Next generation
-		auto a = cache.create(n->level + 1, n, n, n, n, false)->result(&cache, 0);
-		n = cache.create(n->level, a->d, a->c, a->b, a->a, false);
+		SDL_PollEvent(&event);
+
+		int step_flag = 0;
+		switch (event.type) {
+		case SDL_KEYDOWN:
+			switch (event.key.keysym.sym) {
+			case SDLK_RIGHT:
+				steps++;
+				break;
+			case SDLK_LEFT:
+				steps = std::max(0, steps - 1);
+				break;
+			case SDLK_SPACE:
+				step_flag = 1;
+				break;
+			default:
+				break;
+			}
+		}
+
+		if (step_flag == 1) {
+			// Next generation
+			auto a = cache.create(n->level + 1, n, n, n, n, false)->result(&cache, steps);
+			n = cache.create(n->level, a->d, a->c, a->b, a->a, false);
+			counter++;
+		}
 
 		// Clear
 		SDL_SetRenderDrawColor(renderer, 80, 80, 80, 80);
@@ -54,9 +79,7 @@ int main(int argc, char* argv[])
 		}
 
 		SDL_RenderPresent(renderer);
-
-		SDL_PollEvent(&event);
-		counter++;
+		SDL_Delay(16);
 	}
 
 	std::cout << counter << std::endl << std::endl;
