@@ -59,78 +59,85 @@ Node* Cache::create(int level, Node* a, Node* b, Node* c, Node* d, bool alive)
 
 	misses++;
 
-	Node* n = new Node;
-	n->level = level;
-	n->alive = alive;
+	Node* n = new Node {level, a, b, c, d, alive};
 	cache[desc] = n;
-
-	if (level == 0) return n;
-
-	assert(level == a->level + 1);
-	assert(level == b->level + 1);
-	assert(level == c->level + 1);
-	assert(level == d->level + 1);
-		
-	n->a = a;
-	n->b = b;
-	n->c = c;
-	n->d = d;
 
 	return n;
 }
 
 Node* Node::result(Cache *cache)
 {
+	return result(cache, level - 2);
+}
+	
+Node* Node::result(Cache *cache, int steps)
+{
 	// Can't take the result of anything smaller than a 4x4
 	assert(level >= 2);
+	
+	if (steps > level - 2) steps = level - 2;
+	assert(steps >= 0);
 
-	if (cached_result != nullptr) {
-		// std::cout << "hit" << std::endl;
-		return cached_result;
+	if (cached_results[steps] != nullptr) {
+		cache->node_hits++;
+		return cached_results[steps];
 	}
 
-	// std::cout << "miss" << std::endl;
-	
+	cache->node_misses++;
+
 	if (level == 2) {
-		cached_result = result_4x4(cache);
-		return cached_result;
+		cached_results[steps] = result_4x4(cache);
+		return cached_results[steps];
 	}
 	
 	// Capital letters represent 6x6 grid, 2**(l-3) generations into
 	// the future
-	Node* A = a->result(cache);
+	Node* A = a->result(cache, steps);
 	Node* B = cache->create(level - 1,
-			       a->b, b->a, a->d, b->c,
-			       false)->result(cache);
-	Node* C = b->result(cache);
+				a->b, b->a, a->d, b->c,
+				false)->result(cache, steps);
+	Node* C = b->result(cache, steps);
 	Node* D = cache->create(level - 1,
-			       a->c, a->d, c->a, c->b,
-			       false)->result(cache);
+				a->c, a->d, c->a, c->b,
+				false)->result(cache, steps);
 	Node* E = cache->create(level - 1,
-			       a->d, b->c, c->b, d->a,
-			       false)->result(cache);
+				a->d, b->c, c->b, d->a,
+				false)->result(cache, steps);
 	Node* F = cache->create(level - 1,
-			       b->c, b->d, d->a, d->b,
-			       false)->result(cache);
-	Node* G = c->result(cache);
+				b->c, b->d, d->a, d->b,
+				false)->result(cache, steps);
+	Node* G = c->result(cache, steps);
 	Node* H = cache->create(level - 1,
-			       c->b, d->a, c->d, d->c,
-			       false)->result(cache);
-	Node* I = d->result(cache);
+				c->b, d->a, c->d, d->c,
+				false)->result(cache, steps);
+	Node* I = d->result(cache, steps);
 
-	// 2**(l-2) generations into the future
-	Node* x = cache->create(level - 1,
-			 A, B, D, E, false)->result(cache);
-	Node* y = cache->create(level - 1,
-			 B, C, E, F, false)->result(cache);
-	Node* z = cache->create(level - 1,
-			 D, E, G, H, false)->result(cache);
-	Node* w = cache->create(level - 1,
-			 E, F, H, I, false)->result(cache);
+	Node *x, *y, *z, *w;
+	if (steps < level - 2) {
+		// Our level is too high for the number of steps we're trying to
+		// compute, so don't do any work - just merge
+		x = cache->create(level - 2,
+				  A->d, B->c, D->b, E->a, false);
+		y = cache->create(level - 2,
+				  B->d, C->c, E->b, F->a, false);
+		z = cache->create(level - 2,
+				  D->d, E->c, G->b, H->a, false);
+		w = cache->create(level - 2,
+				  E->d, F->c, H->b, I->a, false);
+	} else {
+		x = cache->create(level - 1,
+				  A, B, D, E, false)->result(cache, steps);
+		y = cache->create(level - 1,
+				  B, C, E, F, false)->result(cache, steps);
+		z = cache->create(level - 1,
+				  D, E, G, H, false)->result(cache, steps);
+		w = cache->create(level - 1,
+				  E, F, H, I, false)->result(cache, steps);
+	}
 
 	// Combined result, 2**(l-2) generations into the future
-	cached_result = cache->create(level - 1, x, y, z, w, false);
-	return cached_result;
+	cached_results[steps] = cache->create(level - 1, x, y, z, w, false);
+	return cached_results[steps];
 }
 
 Node* Node::result_4x4(Cache *cache)
@@ -191,4 +198,6 @@ void Cache::print_stats()
 	std::cout << "max_load_factor: " << cache.max_load_factor() << std::endl;
 	std::cout << "hits: " << hits << std::endl;
 	std::cout << "misses: " << misses << std::endl;
+	std::cout << "node_hits: " << node_hits << std::endl;
+	std::cout << "node_misses: " << node_misses << std::endl;
 }

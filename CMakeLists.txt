@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 # Optimized, but with debug symbols (turns assertions off!)
-set(CMAKE_BUILD_TYPE RelWithDebInfo)
+set(CMAKE_BUILD_TYPE Release)
 
 # Set the project name
 project(Hashlife)
