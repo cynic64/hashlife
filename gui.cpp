@@ -35,10 +35,10 @@ int main(int argc, char* argv[])
 	SDL_Event event;
 	int counter = 0;
 	int steps = 0;
+	bool paused = true;
 	while (!(event.type == SDL_QUIT)) {
 		SDL_PollEvent(&event);
 
-		int step_flag = 0;
 		switch (event.type) {
 		case SDL_KEYDOWN:
 			switch (event.key.keysym.sym) {
@@ -49,18 +49,20 @@ int main(int argc, char* argv[])
 				steps = std::max(0, steps - 1);
 				break;
 			case SDLK_SPACE:
-				step_flag = 1;
+				paused = !paused;
 				break;
 			default:
 				break;
 			}
 		}
 
-		if (step_flag == 1) {
+		if (!paused) {
 			// Next generation
 			auto a = cache.create(n->level + 1, n, n, n, n, false)->result(&cache, steps);
 			n = cache.create(n->level, a->d, a->c, a->b, a->a, false);
 			counter++;
+
+			SDL_Delay(16);
 		}
 
 		// Clear
@@ -79,7 +81,6 @@ int main(int argc, char* argv[])
 		}
 
 		SDL_RenderPresent(renderer);
-		SDL_Delay(16);
 	}
 
 	std::cout << counter << std::endl << std::endl;

@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <vector>
 #include <cassert>
+#include <string>
 
 namespace hashlife {
 	typedef std::array<int,2> offset_t;
