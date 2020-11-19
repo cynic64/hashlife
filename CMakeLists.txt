@@ -15,14 +15,9 @@ add_library(Internals hashlife.cpp)
 add_library(Loading load.cpp)
 
 # Add the executable
-add_executable(CLI cli.cpp)
 add_executable(GUI gui.cpp)
 
 # Link
-target_link_libraries(CLI ${SDL2_LIBRARIES})
-target_link_libraries(CLI Internals)
-target_link_libraries(CLI Loading)
-
 target_link_libraries(GUI ${SDL2_LIBRARIES})
 target_link_libraries(GUI Internals)
 target_link_libraries(GUI Loading)

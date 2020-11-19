@@ -35,8 +35,8 @@ int main(int argc, char* argv[])
 	int counter = 0;
 	while (!(event.type == SDL_QUIT)) {
 		// Next generation
-		auto a = cache.create(n->level + 1, n, n, n, n, false)->result(&cache);
-		n = cache.create(a->level + 1, a, a, a, a, false)->result(&cache);
+		auto a = cache.create(n->level + 1, n, n, n, n, false)->result(&cache, 0);
+		n = cache.create(n->level, a->d, a->c, a->b, a->a, false);
 
 		// Clear
 		SDL_SetRenderDrawColor(renderer, 80, 80, 80, 80);
@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
 			int x = pos[0];
 			int y = pos[1];
 			
-			SDL_Rect rect {x*8, y*8, 8, 8};
+			SDL_Rect rect {x*4, y*4, 4, 4};
 			SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 			SDL_RenderFillRect(renderer, &rect);
 		}
